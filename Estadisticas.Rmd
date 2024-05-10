@@ -1,0 +1,149 @@
+---
+title: ''
+params: 
+  Jornada: 1
+  jugador: "Jota"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    
+    
+classoption: landscape
+header-includes:
+  - \usepackage{xcolor}
+  - \definecolor{green}{RGB}{12,127,47}
+  - \definecolor{red}{RGB}{255,75,68}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+```
+
+# Cálculo de Estadísticas de OSM - `r params$jugador`/ Jornada  `r params$Jornada`
+
+```{r datos}
+library(readxl)
+library(tidyverse)
+library(flextable)
+library(flextable)
+library(magrittr)
+library(kableExtra)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(scales)
+library(flextable)
+library(gridExtra)
+library(officer)
+BDF <- read_excel("BDF.xlsx", n_max = 2)
+
+df_limpio <- BDF%>%filter(Jugador == params$jugador & Jornada == params$Jornada)
+
+colnames(df_limpio) <- c("Jugador","Jornada","Minutos","Goles","Asistencias","Amarillas","Roja","Pas_comp","Pas_int","Prec_pas","Tir_p","Tir_f","Cent_c","Cent_in","Prec_cent","Reg_comp","Reg_int","Prec_reg","Falt_rec","Falt_com","Fdj","Gran_oc_cr","Gran_oc_fall","Despejes","Pos_per","Recuperaciones","GF","GC","DG")
+```
+
+```{r gen_tabla}
+theme_flextable <- function(x){
+x  %>%
+    bg(part = "header", bg = "darkblue")%>%     
+    color(part = "header", color = "white") %>% 
+    hline(part = "body", border = fp_border(color = "black", width = 1))%>%
+    vline(part = "body", border = fp_border(color = "black", width = 1))%>%
+    bold(part = "header", bold = TRUE) %>%         
+    align(align = "center", part = "header") %>%  #Alineamiento del texto
+    align(align = "center", part = "body") %>%
+    align(align = "center", part = "footer")%>%
+    set_table_properties(align = "left", layout = "autofit") 
+}
+
+```
+
+
+
+## Tabla de estadísticas 
+
+```{r estadisticas_of}
+
+res_of <- data.frame(Goles = df_limpio$Goles, Asistencias = df_limpio$Asistencias,
+                     Pases = paste0("(",df_limpio$Pas_comp,"/",df_limpio$Pas_int,")","= ",round(df_limpio$Prec_pas*100,0),"%"),"TirosAPuerta" = df_limpio$Tir_p, "TirosFuera" = df_limpio$Tir_f, Centros = paste0("(",df_limpio$Cent_c,"/",df_limpio$Cent_in,")","= ",round(df_limpio$Prec_cent*100,0),"%"),Regates =paste0("(",df_limpio$Reg_comp,"/",df_limpio$Reg_int,")","= ",round(df_limpio$Prec_reg*100,0),"%"),"FuerasDeJuego" = df_limpio$Fdj,"GranOcasCreada" = df_limpio$Gran_oc_cr, "GranOcasFallada" = df_limpio$Gran_oc_fall)
+tt <- flextable(res_of)
+tt <- theme_flextable(tt)
+```
+
+```{r demas}
+res_otr <- data.frame("FaltasRecibidas" = df_limpio$Falt_rec, "FalrasCometidas" = df_limpio$Falt_com, Despejes = df_limpio$Despejes, Recuperaciones = df_limpio$Recuperaciones,"PosesiónPerdida" = df_limpio$Pos_per, "GolesAFavor" = df_limpio$GF, "GolesEnContra" = df_limpio$GC, "DiferenciaGoles" = df_limpio$DG,"Amarilla" = df_limpio$Amarillas, Roja = df_limpio$Roja)
+
+tt2 <- flextable(res_otr)
+tt2 <- theme_flextable(tt2)
+```
+
+```{r puntosfantasy}
+pf_goles <- 5* df_limpio$Goles
+pf_asist <- 3*df_limpio$Asistencias
+pf_minutos <- ifelse(df_limpio$Minutos == 0, 0,
+                                  ifelse(df_limpio$Minutos <= 19, 1,
+                                         ifelse(df_limpio$Minutos >= 20, 2, NA)))
+if(is.na(df_limpio$Amarillas)){
+  df_limpio$Amarillas <- 0
+}
+pf_amarillas <- -1*df_limpio$Amarillas
+if(is.na(df_limpio$Roja)){
+  df_limpio$Roja <- 0
+}
+pf_roja <- -3*df_limpio$Roja
+
+pf_tirospuerta <- df_limpio$Tir_p %/% 2
+
+pf_centros <- df_limpio$Cent_c %/% 2
+pf_regates <- df_limpio$Reg_comp %/% 2
+
+pf_granocc <- 1*df_limpio$Gran_oc_cr
+
+pf_despejes <- df_limpio$Despejes %/% 3
+
+pf_pos_per <- - (df_limpio$Pos_per %/% 10)
+
+pf_recup <- df_limpio$Recuperaciones %/% 5
+
+if (df_limpio$GC == 0){
+  pf_gc <- 2
+} else {
+pf_gc <- -(df_limpio$GC %/% 2)
+}
+
+objetos_pf <- ls(pattern = "^pf_")
+valores_pf <- mget(objetos_pf)
+
+# Sumar los valores de cada fila
+pf_total<- rowSums(do.call(cbind, valores_pf))
+```
+
+
+`r tt`
+
+`r tt2`
+
+# Cálculo de puntos fantasy
+
+-----------------
+`r paste(df_limpio$Minutos, "Minutos jugados",ifelse(pf_minutos > 0, paste("\\textcolor{green}{\\textbf{", pf_minutos, "}}"), ifelse(pf_minutos < 0, paste("\\textcolor{red}{\\textbf{", pf_minutos, "}}"), pf_minutos)),"\n")`  
+`r paste(df_limpio$Goles, "Goles", ifelse(pf_goles > 0, paste("\\textcolor{green}{\\textbf{", pf_goles, "}}"), ifelse(pf_goles < 0, paste("\\textcolor{red}{\\textbf{", pf_goles, "}}"), pf_goles)),"\n")`    
+`r paste(df_limpio$Asistencias, "Asistencias de gol", ifelse(pf_asist > 0, paste("\\textcolor{green}{\\textbf{", pf_asist, "}}"), ifelse(pf_asist < 0, paste("\\textcolor{red}{\\textbf{", pf_asist, "}}"), pf_asist)),"\n")`   
+`r paste(df_limpio$Gran_oc_cr, "Asistencias de gol", ifelse(pf_granocc > 0, paste("\\textcolor{green}{\\textbf{", pf_granocc, "}}"), ifelse(pf_granocc < 0, paste("\\textcolor{red}{\\textbf{", pf_granocc, "}}"), pf_granocc)),"\n")`  
+`r paste(df_limpio$Cent_c, "Balones al área", ifelse(pf_centros > 0, paste("\\textcolor{green}{\\textbf{", pf_centros, "}}"), ifelse(pf_centros < 0, paste("\\textcolor{red}{\\textbf{", pf_centros, "}}"), pf_centros)),"\n")`  
+`r paste(df_limpio$Despejes, "Despejes", ifelse(pf_despejes > 0, paste("\\textcolor{green}{\\textbf{", pf_despejes, "}}"), ifelse(pf_despejes < 0, paste("\\textcolor{red}{\\textbf{", pf_despejes, "}}"), pf_despejes)),"\n")`  
+`r paste(df_limpio$GC, "Goles en contra", ifelse(pf_gc > 0, paste("\\textcolor{green}{\\textbf{", pf_gc, "}}"), ifelse(pf_gc < 0, paste("\\textcolor{red}{\\textbf{", pf_gc, "}}"), pf_gc)),"\n")`  
+`r paste(df_limpio$Amarillas, "Tarjetas Amarillas", ifelse(pf_amarillas > 0, paste("\\textcolor{green}{\\textbf{", pf_amarillas, "}}"), ifelse(pf_amarillas < 0, paste("\\textcolor{red}{\\textbf{", pf_amarillas, "}}"), pf_amarillas)),"\n")`  
+`r paste(df_limpio$Roja, "Tarjetas rojas", ifelse(pf_roja > 0, paste("\\textcolor{green}{\\textbf{", pf_roja, "}}"), ifelse(pf_roja < 0, paste("\\textcolor{red}{\\textbf{", pf_roja, "}}"), pf_roja)),"\n")`  
+`r paste(df_limpio$Tir_p, "Tiros a puerta", ifelse(pf_tirospuerta > 0, paste("\\textcolor{green}{\\textbf{", pf_tirospuerta, "}}"), ifelse(pf_tirospuerta < 0, paste("\\textcolor{red}{\\textbf{", pf_tirospuerta, "}}"), pf_tirospuerta)),"\n")`  
+`r paste(df_limpio$Reg_comp, "Regates", ifelse(pf_regates > 0, paste("\\textcolor{green}{\\textbf{", pf_regates, "}}"), ifelse(pf_regates < 0, paste("\\textcolor{red}{\\textbf{", pf_regates, "}}"), pf_regates)),"\n")`  
+`r paste(df_limpio$Recuperaciones, "Balones recuperados", ifelse(pf_recup > 0, paste("\\textcolor{green}{\\textbf{", pf_recup, "}}"), ifelse(pf_recup < 0, paste("\\textcolor{red}{\\textbf{", pf_recup, "}}"), pf_recup)),"\n")`  
+`r paste(df_limpio$Pos_per, "Posesiones perdidas", ifelse(pf_pos_per > 0, paste("\\textcolor{green}{\\textbf{", pf_pos_per, "}}"), ifelse(pf_pos_per < 0, paste("\\textcolor{red}{\\textbf{", pf_pos_per, "}}"), pf_pos_per)),"\n")`     
+  
+**`r paste("Puntos totales", pf_total)` **
+----------------------
+
+
+
