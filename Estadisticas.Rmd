@@ -55,7 +55,10 @@ x  %>%
     align(align = "center", part = "header") %>%  #Alineamiento del texto
     align(align = "center", part = "body") %>%
     align(align = "center", part = "footer")%>%
-    set_table_properties(align = "left", layout = "autofit") 
+    set_table_properties(align = "left", layout = "autofit") %>%
+    labelizor(part = "header", labels = function(x) {
+    gsub("\\.", " ", x)
+  }) 
 }
 
 ```
