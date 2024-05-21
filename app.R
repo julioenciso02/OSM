@@ -20,7 +20,7 @@ ui = fluidPage(theme = shinytheme("cerulean"),
                
                numericInput("jorn",
                             "Jornada","", min = 1, max = 38),
-               selectizeInput("Jugador", "Elige el jugador", NULL,choices = jugadores),
+               selectInput("Jugador", "Elige el jugador",c(Elige = '', jugadores),selectize = TRUE),
                
                downloadButton("report", "Generar informe de partido"),
                add_busy_spinner(spin = "fading-circle")
