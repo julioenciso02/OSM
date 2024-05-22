@@ -45,7 +45,7 @@ library(openxlsx)
      openxlsx::read.xlsx(tf)
    }
 
-p <- read_excel_url("https://github.com/julioenciso02/OSM/raw/main/BDF.xlsx")
+BDF <- read_excel_url("https://github.com/julioenciso02/OSM/raw/main/BDF.xlsx")
 
 df_limpio <- BDF%>%filter(Jugador == params$jugador & Jornada == params$Jornada)
 
