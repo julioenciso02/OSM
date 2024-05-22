@@ -2,6 +2,10 @@
 library(shiny)
 library(shinythemes)
 library(shinybusy)
+library(tinytex)
+if (!tinytex::is_tinytex()) {
+  tinytex::install_tinytex()
+}
 
 jugadores <- c("Jota","Andu","Cerve","Juanqui","Diego","Blesa","Adri")
 # Define UI for application that draws a histogram
@@ -29,17 +33,23 @@ ui = fluidPage(theme = shinytheme("cerulean"),
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-  
   output$report <- downloadHandler(
-    params <- list(Jornada = input$jorn,jugador = input$Jugador), 
-    rmarkdown::render("Estadisticas.Rmd",
-                      params = params,
-                      output_file = paste0(input$Jugador,"-Jornada",input$jorn,".pdf"),
-                      envir = new.env(parent = globalenv())
-    )
-    )
+    filename = function() {
+      paste0(input$Jugador, "-Jornada", input$jorn, ".pdf")
+    },
+    content = function(file) {
+      params <- list(Jornada = input$jorn, jugador = input$Jugador)
+      out <-rmarkdown::render(
+        "Estadisticas.Rmd",
+        params = params,
+        output_file = file,
+        envir = new.env(parent = globalenv())
+      )
+      file.rename(out,file)
+    }
+  )
 }
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)

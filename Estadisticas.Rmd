@@ -16,7 +16,8 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F, warning = F, message = F)
+knitr::opts_chunk$set(echo = F, warning = F, message = F, error = T)
+options(tinytex.verbose = TRUE)
 ```
 
 # Cálculo de Estadísticas de OSM - `r params$jugador`/ Jornada  `r params$Jornada`
@@ -78,13 +79,13 @@ x  %>%
 ```{r estadisticas_of}
 
 res_of <- data.frame(Goles = df_limpio$Goles, Asistencias = df_limpio$Asistencias,
-                     Pases = paste0("(",df_limpio$Pas_comp,"/",df_limpio$Pas_int,")","= ",round(df_limpio$Prec_pas*100,0),"%"),"TirosAPuerta" = df_limpio$Tir_p, "TirosFuera" = df_limpio$Tir_f, Centros = paste0("(",df_limpio$Cent_c,"/",df_limpio$Cent_in,")","= ",round(df_limpio$Prec_cent*100,0),"%"),Regates =paste0("(",df_limpio$Reg_comp,"/",df_limpio$Reg_int,")","= ",round(df_limpio$Prec_reg*100,0),"%"),"FuerasDeJuego" = df_limpio$Fdj,"GranOcasCreada" = df_limpio$Gran_oc_cr, "GranOcasFallada" = df_limpio$Gran_oc_fall)
+                     Pases = paste0("(",df_limpio$Pas_comp,"/",df_limpio$Pas_int,")","= ",round(df_limpio$Prec_pas*100,0),"%"),"Tiros A Puerta" = df_limpio$Tir_p, "Tiros Fuera" = df_limpio$Tir_f, Centros = paste0("(",df_limpio$Cent_c,"/",df_limpio$Cent_in,")","= ",round(df_limpio$Prec_cent*100,0),"%"),Regates =paste0("(",df_limpio$Reg_comp,"/",df_limpio$Reg_int,")","= ",round(df_limpio$Prec_reg*100,0),"%"),"Fueras De Juego" = df_limpio$Fdj,"Gran Ocas Creada" = df_limpio$Gran_oc_cr, "Gran Ocas Fallada" = df_limpio$Gran_oc_fall)
 tt <- flextable(res_of)
 tt <- theme_flextable(tt)
 ```
 
 ```{r demas}
-res_otr <- data.frame("FaltasRecibidas" = df_limpio$Falt_rec, "FalrasCometidas" = df_limpio$Falt_com, Despejes = df_limpio$Despejes, Recuperaciones = df_limpio$Recuperaciones,"PosesiónPerdida" = df_limpio$Pos_per, "GolesAFavor" = df_limpio$GF, "GolesEnContra" = df_limpio$GC, "DiferenciaGoles" = df_limpio$DG,"Amarilla" = df_limpio$Amarillas, Roja = df_limpio$Roja)
+res_otr <- data.frame("FaltasRecibidas" = df_limpio$Falt_rec, "Faltas Cometidas" = df_limpio$Falt_com, Despejes = df_limpio$Despejes, Recuperaciones = df_limpio$Recuperaciones,"Posesión Perdida" = df_limpio$Pos_per, "Goles A Favor" = df_limpio$GF, "GolesEnContra" = df_limpio$GC, "Diferencia Goles" = df_limpio$DG,"Amarilla" = df_limpio$Amarillas, Roja = df_limpio$Roja)
 
 tt2 <- flextable(res_otr)
 tt2 <- theme_flextable(tt2)
