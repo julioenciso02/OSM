@@ -37,7 +37,15 @@ library(scales)
 library(flextable)
 library(gridExtra)
 library(officer)
-BDF <- read_excel("BDF.xlsx", n_max = 2)
+library(httr)
+library(openxlsx)
+
+ read_excel_url <- function(url) {
+    GET(url, write_disk(tf <- tempfile(fileext = ".xlsx")))
+     openxlsx::read.xlsx(tf)
+   }
+
+p <- read_excel_url("https://github.com/julioenciso02/OSM/raw/main/BDF.xlsx")
 
 df_limpio <- BDF%>%filter(Jugador == params$jugador & Jornada == params$Jornada)
 
