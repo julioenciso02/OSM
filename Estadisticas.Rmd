@@ -79,17 +79,27 @@ x  %>%
 ```{r estadisticas_of}
 
 res_of <- data.frame(Goles = df_limpio$Goles, Asistencias = df_limpio$Asistencias,
-                     Pases = paste0("(",df_limpio$Pas_comp,"/",df_limpio$Pas_int,")","= ",round(df_limpio$Prec_pas*100,0),"%"),"Tiros A Puerta" = df_limpio$Tir_p, "Tiros Fuera" = df_limpio$Tir_f, Centros = paste0("(",df_limpio$Cent_c,"/",df_limpio$Cent_in,")","= ",round(df_limpio$Prec_cent*100,0),"%"),Regates =paste0("(",df_limpio$Reg_comp,"/",df_limpio$Reg_int,")","= ",round(df_limpio$Prec_reg*100,0),"%"),"Fueras De Juego" = df_limpio$Fdj,"Gran Ocas Creada" = df_limpio$Gran_oc_cr, "Gran Ocas Fallada" = df_limpio$Gran_oc_fall)
+                     Pases = paste0("(",df_limpio$Pas_comp,"/",df_limpio$Pas_int,")","= ",round(df_limpio$Prec_pas*100,0),"%"),"Tiros a Puerta" = df_limpio$Tir_p, "Tiros Fuera" = df_limpio$Tir_f, Centros = paste0("(",df_limpio$Cent_c,"/",df_limpio$Cent_in,")","= ",round(df_limpio$Prec_cent*100,0),"%"),Regates =paste0("(",df_limpio$Reg_comp,"/",df_limpio$Reg_int,")","= ",round(df_limpio$Prec_reg*100,0),"%"),"Fueras De Juego" = df_limpio$Fdj)
 tt <- flextable(res_of)
 tt <- theme_flextable(tt)
 ```
 
 ```{r demas}
-res_otr <- data.frame("FaltasRecibidas" = df_limpio$Falt_rec, "Faltas Cometidas" = df_limpio$Falt_com, Despejes = df_limpio$Despejes, Recuperaciones = df_limpio$Recuperaciones,"Posesión Perdida" = df_limpio$Pos_per, "Goles A Favor" = df_limpio$GF, "GolesEnContra" = df_limpio$GC, "Diferencia Goles" = df_limpio$DG,"Amarilla" = df_limpio$Amarillas, Roja = df_limpio$Roja)
+res_otr <- data.frame(Recuperaciones = df_limpio$Recuperaciones,"Posesión Perdida" = df_limpio$Pos_per, "Goles a Favor" = df_limpio$GF, "Goles en Contra" = df_limpio$GC, "Diferencia Goles" = df_limpio$DG,"Amarilla" = df_limpio$Amarillas, Roja = df_limpio$Roja)
 
 tt2 <- flextable(res_otr)
 tt2 <- theme_flextable(tt2)
 ```
+
+```{r ultim}
+res_ult <- data.frame("Gran Ocasión Creada" = df_limpio$Gran_oc_cr, "Gran Ocasión Fallada" = df_limpio$Gran_oc_fall,"Faltas Recibidas" = df_limpio$Falt_rec, "Faltas Cometidas" = df_limpio$Falt_com, Despejes = df_limpio$Despejes)
+
+tt3 <- flextable(res_ult)
+tt3 <- theme_flextable(tt3)
+
+```
+
+
 
 ```{r puntosfantasy}
 pf_goles <- 5* df_limpio$Goles
@@ -134,6 +144,7 @@ pf_total<- rowSums(do.call(cbind, valores_pf))
 
 
 `r tt`
+`r tt3`
 
 `r tt2`
 
@@ -143,7 +154,7 @@ pf_total<- rowSums(do.call(cbind, valores_pf))
 `r paste(df_limpio$Minutos, "Minutos jugados",ifelse(pf_minutos > 0, paste("\\textcolor{green}{\\textbf{", pf_minutos, "}}"), ifelse(pf_minutos < 0, paste("\\textcolor{red}{\\textbf{", pf_minutos, "}}"), pf_minutos)),"\n")`  
 `r paste(df_limpio$Goles, "Goles", ifelse(pf_goles > 0, paste("\\textcolor{green}{\\textbf{", pf_goles, "}}"), ifelse(pf_goles < 0, paste("\\textcolor{red}{\\textbf{", pf_goles, "}}"), pf_goles)),"\n")`    
 `r paste(df_limpio$Asistencias, "Asistencias de gol", ifelse(pf_asist > 0, paste("\\textcolor{green}{\\textbf{", pf_asist, "}}"), ifelse(pf_asist < 0, paste("\\textcolor{red}{\\textbf{", pf_asist, "}}"), pf_asist)),"\n")`   
-`r paste(df_limpio$Gran_oc_cr, "Asistencias de gol", ifelse(pf_granocc > 0, paste("\\textcolor{green}{\\textbf{", pf_granocc, "}}"), ifelse(pf_granocc < 0, paste("\\textcolor{red}{\\textbf{", pf_granocc, "}}"), pf_granocc)),"\n")`  
+`r paste(df_limpio$Gran_oc_cr, "Asistencias sin gol", ifelse(pf_granocc > 0, paste("\\textcolor{green}{\\textbf{", pf_granocc, "}}"), ifelse(pf_granocc < 0, paste("\\textcolor{red}{\\textbf{", pf_granocc, "}}"), pf_granocc)),"\n")`  
 `r paste(df_limpio$Cent_c, "Balones al área", ifelse(pf_centros > 0, paste("\\textcolor{green}{\\textbf{", pf_centros, "}}"), ifelse(pf_centros < 0, paste("\\textcolor{red}{\\textbf{", pf_centros, "}}"), pf_centros)),"\n")`  
 `r paste(df_limpio$Despejes, "Despejes", ifelse(pf_despejes > 0, paste("\\textcolor{green}{\\textbf{", pf_despejes, "}}"), ifelse(pf_despejes < 0, paste("\\textcolor{red}{\\textbf{", pf_despejes, "}}"), pf_despejes)),"\n")`  
 `r paste(df_limpio$GC, "Goles en contra", ifelse(pf_gc > 0, paste("\\textcolor{green}{\\textbf{", pf_gc, "}}"), ifelse(pf_gc < 0, paste("\\textcolor{red}{\\textbf{", pf_gc, "}}"), pf_gc)),"\n")`  

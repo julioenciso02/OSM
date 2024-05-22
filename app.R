@@ -3,9 +3,7 @@ library(shiny)
 library(shinythemes)
 library(shinybusy)
 library(tinytex)
-if (!tinytex::is_tinytex()) {
-  tinytex::install_tinytex()
-}
+
 
 jugadores <- c("Jota","Andu","Cerve","Juanqui","Diego","Blesa","Adri")
 # Define UI for application that draws a histogram
