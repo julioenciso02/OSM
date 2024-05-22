@@ -19,12 +19,15 @@ ui = fluidPage(theme = shinytheme("cerulean"),
                div(style = "position: absolute; top: 35px; left: 10;", 
                    tags$img(src = "https://golab.es/wp-content/uploads/2021/07/cropped-Logo-web-Golab-1.png", width = 100, height = 100)
                ),
+               radioButtons("tipoInforme", "Selecciona el tipo de informe", choices = list("Jornada" = "Jornada", "Temporada" = "Temporada")),
                
-               numericInput("jorn",
-                            "Jornada","", min = 1, max = 38),
-               selectInput("Jugador", "Elige el jugador",c(Elige = '', jugadores),selectize = TRUE),
+               conditionalPanel(
+                 condition = "input.tipoInforme == 'Jornada'",
+                 numericInput("jorn", "Jornada", "", min = 1, max = 38)
+               ),
                
-               downloadButton("report", "Generar informe de partido"),
+               selectInput("Jugador", "Elige el jugador", c(Elige = '', jugadores), selectize = TRUE),
+               downloadButton("report", "Generar informe"),
                add_busy_spinner(spin = "fading-circle")
                
 )
@@ -36,6 +39,7 @@ server <- function(input, output) {
       paste0(input$Jugador, "-Jornada", input$jorn, ".pdf")
     },
     content = function(file) {
+      if (input$tipoInforme == "Jornada"){
       params <- list(Jornada = input$jorn, jugador = input$Jugador)
       out <-rmarkdown::render(
         "Estadisticas.Rmd",
@@ -43,6 +47,14 @@ server <- function(input, output) {
         output_file = file,
         envir = new.env(parent = globalenv())
       )
+      } else {
+        params <- list(jugador = input$Jugador)
+        out <- rmarkdown::render(
+        "EstadisticasMedias.Rmd",
+        params = params,
+        output_file = paste0(input$Jugador,"-Temporada.pdf"),
+        envir = new.env(parent = globalenv())
+  )}
       file.rename(out,file)
     }
   )
