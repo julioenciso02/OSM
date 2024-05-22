@@ -1,0 +1,165 @@
+---
+title: ''
+params: 
+  jugador: "Jota"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    
+    
+classoption: landscape
+header-includes:
+  - \usepackage{xcolor}
+  - \definecolor{green}{RGB}{12,127,47}
+  - \definecolor{red}{RGB}{255,75,68}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F, error = T)
+options(tinytex.verbose = TRUE)
+```
+
+# Cálculo de Estadísticas medias por partido de OSM - `r params$jugador`
+
+```{r datos}
+library(readxl)
+library(tidyverse)
+library(flextable)
+library(flextable)
+library(magrittr)
+library(kableExtra)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(scales)
+library(flextable)
+library(gridExtra)
+library(officer)
+library(httr)
+library(openxlsx)
+
+ read_excel_url <- function(url) {
+    GET(url, write_disk(tf <- tempfile(fileext = ".xlsx")))
+     openxlsx::read.xlsx(tf)
+   }
+
+BDF <- read_excel_url("https://github.com/julioenciso02/OSM/raw/main/BDF.xlsx")
+
+df_limpio <- BDF%>%filter(Jugador == params$jugador)
+n_partidos <- nrow(df_limpio)
+colnames(df_limpio) <- c("Jugador","Jornada","Minutos","Goles","Asistencias","Amarillas","Roja","Pas_comp","Pas_int","Prec_pas","Tir_p","Tir_f","Cent_c","Cent_in","Prec_cent","Reg_comp","Reg_int","Prec_reg","Falt_rec","Falt_com","Fdj","Gran_oc_cr","Gran_oc_fall","Despejes","Pos_per","Recuperaciones","GF","GC","DG")
+
+df_medias <- df_limpio[,-c(1,2)]%>%colMeans()
+df_medias <- as.data.frame(t(df_medias))
+
+
+```
+
+```{r gen_tabla}
+theme_flextable <- function(x){
+x  %>%
+    bg(part = "header", bg = "darkblue")%>%     
+    color(part = "header", color = "white") %>% 
+    hline(part = "body", border = fp_border(color = "black", width = 1))%>%
+    vline(part = "body", border = fp_border(color = "black", width = 1))%>%
+    bold(part = "header", bold = TRUE) %>%         
+    align(align = "center", part = "header") %>%  #Alineamiento del texto
+    align(align = "center", part = "body") %>%
+    align(align = "center", part = "footer")%>%
+    set_table_properties(align = "left", layout = "autofit") %>%
+    labelizor(part = "header", labels = function(x) {
+    gsub("\\.", " ", x)
+  }) 
+}
+
+```
+
+
+
+
+
+## Tabla de estadísticas por partido
+
+```{r estadisticas_of}
+
+res_of <- data.frame(Goles = round(df_medias$Goles,2), Asistencias = round(df_medias$Asistencias,2),
+                     Pases = paste0("(",round(df_medias$Pas_comp,1),"/",round(df_medias$Pas_int,1),")= ",round(df_medias$Prec_pas*100,0),"%"),"Tiros a Puerta" = round(df_medias$Tir_p,2), "Tiros Fuera" = round(df_medias$Tir_f,2), Centros = paste0("(",round(df_medias$Cent_c,1),"/",round(df_medias$Cent_in,1),")","= ",round(df_medias$Prec_cent*100,0),"%"),Regates =paste0("(",round(df_medias$Reg_comp,1),"/",round(df_medias$Reg_int,1),")","= ",round(df_medias$Prec_reg*100,0),"%"),"Fueras De Juego" = round(df_medias$Fdj,2))
+tt <- flextable(res_of)
+tt <- theme_flextable(tt)
+```
+
+```{r demas}
+res_otr <- data.frame(Recuperaciones = round(df_medias$Recuperaciones,2),"Posesión Perdida" = round(df_medias$Pos_per,2), "Goles a Favor" = round(df_medias$GF,2), "Goles en Contra" = round(df_medias$GC,2), "Diferencia Goles" = round(df_medias$DG,2),"Amarilla" = round(df_medias$Amarillas,2), Roja = round(df_medias$Roja,2))
+
+tt2 <- flextable(res_otr)
+tt2 <- theme_flextable(tt2)
+```
+
+```{r ultim}
+res_ult <- data.frame("Gran Ocasión Creada" = round(df_medias$Gran_oc_cr,2), "Gran Ocasión Fallada" = round(df_medias$Gran_oc_fall,2),"Faltas Recibidas" = round(df_medias$Falt_rec,2), "Faltas Cometidas" = round(df_medias$Falt_com,2), Despejes = round(df_medias$Despejes,2))
+
+tt3 <- flextable(res_ult)
+tt3 <- theme_flextable(tt3)
+
+```
+
+`r tt`
+`r tt3`
+
+`r tt2`
+
+```{r media_pf}
+jugador_pf <- 0
+
+
+for (i in 1:nrow(df_limpio)){
+  objetos_pf <- NA
+  valores_pf <- NA
+pf_goles <- 5* df_limpio[i,]$Goles
+pf_asist <- 3*df_limpio[i,]$Asistencias
+pf_minutos <- ifelse(df_limpio[i,]$Minutos == 0, 0,
+                     ifelse(df_limpio[i,]$Minutos <= 19, 1,
+                            ifelse(df_limpio[i,]$Minutos >= 20, 2, NA)))
+
+pf_amarillas <- -1*df_limpio[i,]$Amarillas
+
+pf_roja <- -3*df_limpio[i,]$Roja
+
+pf_tirospuerta <- df_limpio[i,]$Tir_p %/% 2
+
+pf_centros <- df_limpio[i,]$Cent_c %/% 2
+pf_regates <- df_limpio[i,]$Reg_comp %/% 2
+
+pf_granocc <- 1*df_limpio[i,]$Gran_oc_cr
+
+pf_despejes <- df_limpio[i,]$Despejes %/% 3
+
+pf_pos_per <- - (df_limpio[i,]$Pos_per %/% 10)
+
+pf_recup <- df_limpio[i,]$Recuperaciones %/% 5
+
+if (df_limpio[i,]$GC == 0){
+  pf_gc <- 2
+} else {
+  pf_gc <- -(df_limpio[i,]$GC %/% 2)
+}
+
+objetos_pf <- ls(pattern = "^pf_")
+valores_pf <- mget(objetos_pf)
+
+# Sumar los valores de cada fila
+total_pf<- rowSums(do.call(cbind, valores_pf))
+jugador_pf <- jugador_pf + total_pf
+}
+
+media_pf <- round(jugador_pf/n_partidos,2)
+
+```
+# Cálculo de puntos fantasy
+
+**Puntos fantasy totales:** **`r jugador_pf`**  
+**Partidos jugados:** **`r n_partidos`**  
+**Media de puntos fantasy** **`r media_pf`**
+
