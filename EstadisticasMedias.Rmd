@@ -80,7 +80,7 @@ x  %>%
 
 
 
-## Tabla de estadísticas por partido
+
 
 ```{r estadisticas_of}
 
@@ -106,7 +106,10 @@ tt3 <- theme_flextable(tt3)
 ```
 
 `r tt`
-`r tt3`
+
+```{r, echo=FALSE, fig.height= 0.5}
+tt3
+```
 
 `r tt2`
 
@@ -162,4 +165,55 @@ media_pf <- round(jugador_pf/n_partidos,2)
 **Puntos fantasy totales:** **`r jugador_pf`**  
 **Partidos jugados:** **`r n_partidos`**  
 **Media de puntos fantasy** **`r media_pf`**
+
+```{r grafico_pts, fig.height=2.5, fig.width=6}
+for (i in 1:nrow(df_limpio)){
+  
+pf_goles <- 5* df_limpio[i,]$Goles
+pf_asist <- 3*df_limpio[i,]$Asistencias
+pf_minutos <- ifelse(df_limpio[i,]$Minutos == 0, 0,
+                     ifelse(df_limpio[i,]$Minutos <= 19, 1,
+                            ifelse(df_limpio[i,]$Minutos >= 20, 2, NA)))
+
+pf_amarillas <- -1*df_limpio[i,]$Amarillas
+
+pf_roja <- -3*df_limpio[i,]$Roja
+
+pf_tirospuerta <- df_limpio[i,]$Tir_p %/% 2
+
+pf_centros <- df_limpio[i,]$Cent_c %/% 2
+pf_regates <- df_limpio[i,]$Reg_comp %/% 2
+
+pf_granocc <- 1*df_limpio[i,]$Gran_oc_cr
+
+pf_despejes <- df_limpio[i,]$Despejes %/% 3
+
+pf_pos_per <- - (df_limpio[i,]$Pos_per %/% 10)
+
+pf_recup <- df_limpio[i,]$Recuperaciones %/% 5
+
+if (df_limpio[i,]$GC == 0){
+  pf_gc <- 2
+} else {
+  pf_gc <- -(df_limpio[i,]$GC %/% 2)
+}
+
+objetos_pf <- ls(pattern = "^pf_")
+valores_pf <- mget(objetos_pf)
+
+# Sumar los valores de cada fila
+total_pf<- rowSums(do.call(cbind, valores_pf))
+df_limpio$puntos_fantasy[i] <- total_pf
+}
+df_limpio$color <- ifelse(df_limpio$puntos_fantasy > 0, "Positivo", "Negativo")
+
+ggplot(df_limpio, aes(x = Jornada, y = abs(puntos_fantasy), fill = color)) +
+  geom_col() +
+  geom_text(aes(label = puntos_fantasy, y = 1.25), color = "white", size = 8) +  
+  scale_fill_manual(values = c("Positivo" = "#00AA20", "Negativo" = "#FE4B44"), guide = "none") +
+  labs(x = "Jornada", y = "Puntos Fantasy", title = "") +
+  theme_classic()
+
+
+```
 
