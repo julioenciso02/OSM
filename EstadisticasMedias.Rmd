@@ -85,7 +85,7 @@ x  %>%
 ```{r estadisticas_of}
 
 res_of <- data.frame(Goles = round(df_medias$Goles,2), Asistencias = round(df_medias$Asistencias,2),
-                     Pases = paste0("(",round(df_medias$Pas_comp,1),"/",round(df_medias$Pas_int,1),")= ",round(df_medias$Prec_pas*100,0),"%"),"Tiros a Puerta" = round(df_medias$Tir_p,2), "Tiros Fuera" = round(df_medias$Tir_f,2), Centros = paste0("(",round(df_medias$Cent_c,1),"/",round(df_medias$Cent_in,1),")","= ",round(df_medias$Prec_cent*100,0),"%"),Regates =paste0("(",round(df_medias$Reg_comp,1),"/",round(df_medias$Reg_int,1),")","= ",round(df_medias$Prec_reg*100,0),"%"),"Fueras De Juego" = round(df_medias$Fdj,2))
+                     Pases = paste0("(",round(df_medias$Pas_comp,1),"/",round(df_medias$Pas_int,1),")= ",round((df_medias$Pas_comp/df_medias$Pas_int)*100,0),"%"),"Tiros a Puerta" = round(df_medias$Tir_p,2), "Tiros Fuera" = round(df_medias$Tir_f,2), Centros = paste0("(",round(df_medias$Cent_c,1),"/",round(df_medias$Cent_in,1),")","= ",round((df_medias$Cent_c/df_medias$Cent_in)*100,0),"%"),Regates =paste0("(",round(df_medias$Reg_comp,1),"/",round(df_medias$Reg_int,1),")","= ",round((df_medias$Reg_comp/df_medias$Reg_int)*100,0),"%"),"Fueras De Juego" = round(df_medias$Fdj,2))
 tt <- flextable(res_of)
 tt <- theme_flextable(tt)
 ```
@@ -166,7 +166,7 @@ media_pf <- round(jugador_pf/n_partidos,2)
 **Partidos jugados:** **`r n_partidos`**  
 **Media de puntos fantasy** **`r media_pf`**
 
-```{r grafico_pts, fig.height=2.5, fig.width=6}
+```{r grafico_pts, fig.height=2.65, fig.width=7}
 for (i in 1:nrow(df_limpio)){
   
 pf_goles <- 5* df_limpio[i,]$Goles
@@ -209,8 +209,9 @@ df_limpio$color <- ifelse(df_limpio$puntos_fantasy > 0, "Positivo", "Negativo")
 
 ggplot(df_limpio, aes(x = Jornada, y = abs(puntos_fantasy), fill = color)) +
   geom_col() +
-  geom_text(aes(label = puntos_fantasy, y = 1.25), color = "white", size = 8) +  
+  geom_text(aes(label = puntos_fantasy),vjust = -0.15, color = "black", size = 2.25) +  
   scale_fill_manual(values = c("Positivo" = "#00AA20", "Negativo" = "#FE4B44"), guide = "none") +
+  scale_x_continuous(breaks = seq(1, max(df_limpio$Jornada), by = 1)) +
   labs(x = "Jornada", y = "Puntos Fantasy", title = "") +
   theme_classic()
 
