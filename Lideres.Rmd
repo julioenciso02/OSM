@@ -1,0 +1,368 @@
+---
+title: ''
+output: pdf_document
+header-includes:
+  - \usepackage{booktabs}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = F, warning = F)
+```
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(flextable)
+library(flextable)
+library(magrittr)
+library(kableExtra)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(scales)
+library(flextable)
+library(gridExtra)
+library(officer)
+library(httr)
+library(openxlsx)
+
+ read_excel_url <- function(url) {
+    GET(url, write_disk(tf <- tempfile(fileext = ".xlsx")))
+     openxlsx::read.xlsx(tf)
+   }
+
+BDF <- read_excel_url("https://github.com/julioenciso02/OSM/raw/main/BDF.xlsx")
+
+```
+
+```{r, results='asis'}
+top_goleadores <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Goles = sum(Goles)) %>%
+  arrange(desc(Goles)) %>%
+  head(5)%>%kbl(col.names = c("","Goles"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+top_asistentes <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Asistencias = sum(Asistencias)) %>%
+  arrange(desc(Asistencias)) %>%
+  head(5)%>%kbl(col.names = c("","Asistencias"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_ga <- BDF %>%
+  group_by(Jugador) %>%
+  summarise("G+A" = sum(Goles) + sum(Asistencias)) %>%
+  arrange(desc(`G+A`)) %>%
+  head(5)%>%kbl(col.names = c("","Goles + Asistencias"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_tiros_puerta <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(TirosAPuerta = mean(Tiros.a.puerta)) %>%
+  arrange(desc(TirosAPuerta)) %>%
+  head(5)%>%kbl(col.names = c("","Tiros a Puerta"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_pases <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(
+    PromedioPasesCompletados = mean(Pases.Completados),
+    PromedioPasesIntentados = mean(Pases.Intentados),
+    Precision = (mean(Pases.Completados) / mean(Pases.Intentados)) * 100
+  ) %>%
+  arrange(desc(PromedioPasesCompletados)) %>%
+  head(5)
+
+# Formatear los resultados
+top_pases_formatted <- top_pases %>%
+  mutate(
+    Pases = paste0(
+       Jugador, "   ",
+      round(PromedioPasesCompletados,1), "   (",
+      round(Precision), "%)"
+    )
+  ) %>%
+  select(Pases)%>%kbl(col.names = c("Pases"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+
+top_regates <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(
+    PromedioRegatesCompletados = mean(Regates.completados),
+    PromedioRegatesIntentados = mean(Regates.intentados),
+    Precision = (mean(Regates.completados) / mean(Regates.intentados)) * 100
+  ) %>%
+  arrange(desc(PromedioRegatesCompletados)) %>%
+  head(5)
+
+# Formatear los resultados
+top_regates_formatted <- top_regates %>%
+  mutate(
+    Regates = paste0(
+       Jugador, "   ",
+      round(PromedioRegatesCompletados,1), "   (",
+      round(Precision), "%)"
+    )
+  ) %>%
+  select(Regates)%>%kbl(col.names = c("Regates"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_centros <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(
+    PromedioCentrosCompletados = mean(Centros.completados),
+    PromedioCentrosIntentados = mean(Centros.Intentados),
+    Precision = (mean(Centros.completados) / mean(Centros.Intentados)) * 100
+  ) %>%
+  arrange(desc(PromedioCentrosCompletados)) %>%
+  head(5)
+
+# Formatear los resultados
+top_centros_formatted <- top_centros %>%
+  mutate(
+    Centros = paste0(
+      Jugador, "   ",
+      round(PromedioCentrosCompletados,1), "   (",
+      round(Precision), "%)"
+    )
+  ) %>%
+  select(Centros)%>%kbl(col.names = c("Centros"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+
+
+top_ocfall <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(GranOcasionFallada = sum(Grandes.Ocasiones.falladas)) %>%
+  arrange(desc(GranOcasionFallada)) %>%
+  head(5)%>%kbl(col.names = c("","Grandes ocasiones falladas"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_occre <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(GranOcasionCreada = sum(Grandes.Ocasiones.creadas)) %>%
+  arrange(desc(GranOcasionCreada)) %>%
+  head(5)%>%kbl(col.names = c("","Grandes ocasiones creadas"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_despejes <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Despejes = mean(Despejes)) %>%
+  arrange(desc(Despejes)) %>%
+  head(5)%>%kbl(col.names = c("","Despejes"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+top_recuperaciones <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Recuperaciones = mean(Recuperaciones)) %>%
+  arrange(desc(Recuperaciones)) %>%
+  head(5)%>%kbl(col.names = c("","Recuperaciones"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+top_perdidas <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(PosesionPerdida = mean(Posesión.Perdia)) %>%
+  arrange(desc(PosesionPerdida)) %>%
+  head(5)%>%kbl(col.names = c("","Posesiones perdidas"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+```
+
+# Líderes de estadísticas - OSM
+
+```{r, results='asis'}
+top_amarillas <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Amarillas = sum(Amarilla)) %>%
+  arrange(desc(Amarillas)) %>%
+  head(5)%>%kbl(col.names = c("","Amarillas"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+top_rojas <- BDF %>%
+  group_by(Jugador) %>%
+  summarise(Rojas = sum(Roja)) %>%
+  arrange(desc(Rojas)) %>%
+  head(5)%>%kbl(col.names = c("","Rojas"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+
+
+
+
+```
+
+```{r}
+
+resultados_totales <- data.frame(
+  Jugador = character(),
+  Total_PF = numeric(),
+  stringsAsFactors = FALSE
+)
+
+resultados_medias <- data.frame(
+  Jugador = character(),
+  Media_PF = numeric(),
+  stringsAsFactors = FALSE
+)
+jugadores <- unique(BDF$Jugador)
+
+for (jugador in jugadores){
+  df_limpio <- BDF%>%filter(Jugador == jugador)
+  colnames(df_limpio) <- c("Jugador","Jornada","Minutos","Goles","Asistencias","Amarillas","Roja","Pas_comp","Pas_int","Prec_pas","Tir_p","Tir_f","Cent_c","Cent_in","Prec_cent","Reg_comp","Reg_int","Prec_reg","Falt_rec","Falt_com","Fdj","Gran_oc_cr","Gran_oc_fall","Despejes","Pos_per","Recuperaciones","GF","GC","DG")
+  n_partidos <- nrow(df_limpio)
+  jugador_pf <- 0
+  for (i in 1:nrow(df_limpio)){
+    
+    pf_goles <- 5* df_limpio[i,]$Goles
+    pf_asist <- 3*df_limpio[i,]$Asistencias
+    pf_minutos <- ifelse(df_limpio[i,]$Minutos == 0, 0,
+                         ifelse(df_limpio[i,]$Minutos <= 19, 1,
+                                ifelse(df_limpio[i,]$Minutos >= 20, 2, NA)))
+    
+    pf_amarillas <- -1*df_limpio[i,]$Amarillas
+    
+    pf_roja <- -3*df_limpio[i,]$Roja
+    
+    pf_tirospuerta <- df_limpio[i,]$Tir_p %/% 2
+    
+    pf_centros <- df_limpio[i,]$Cent_c %/% 2
+    pf_regates <- df_limpio[i,]$Reg_comp %/% 2
+    
+    pf_granocc <- 1*df_limpio[i,]$Gran_oc_cr
+    
+    pf_despejes <- df_limpio[i,]$Despejes %/% 3
+    
+    pf_pos_per <- - (df_limpio[i,]$Pos_per %/% 10)
+    
+    pf_recup <- df_limpio[i,]$Recuperaciones %/% 5
+    
+    if (df_limpio[i,]$GC == 0){
+      pf_gc <- 2
+    } else {
+      pf_gc <- -(df_limpio[i,]$GC %/% 2)
+    }
+    
+    
+    
+    # Sumar los valores de cada fila
+    total_pf <- pf_goles + pf_asist + pf_minutos + pf_amarillas + pf_roja +
+      pf_tirospuerta + pf_centros + pf_regates + pf_granocc +
+      pf_despejes + pf_pos_per + pf_recup + pf_gc
+    
+    jugador_pf <- jugador_pf + total_pf
+    
+  }
+  
+  media_pf <- round(jugador_pf/n_partidos,2)
+  resultados_totales <- rbind(resultados_totales, data.frame(Jugador = jugador, Total_PF = jugador_pf))
+  resultados_medias <- rbind(resultados_medias, data.frame(Jugador = jugador, Media_PF = media_pf))
+}
+
+top_5_totalpf <- resultados_totales %>% arrange(desc(Total_PF)) %>% head(5)%>%kbl(col.names = c("","Puntos Fantasy"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+top_5_mediapf <- resultados_medias %>% arrange(desc(Media_PF)) %>% head(5)%>%kbl(col.names = c("","Media Puntos Fantasy"),booktabs = T)%>%kable_styling(position = "left", full_width = F)
+```
+
+
+
+
+
+
+\begin{table}[!htb]
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_goleadores
+```
+\end{minipage}%
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_asistentes
+```
+\end{minipage}%
+\begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_ga
+```
+\end{minipage}%
+\end{table}
+
+\begin{table}[!htb]
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_pases_formatted
+```
+\end{minipage}%
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_regates_formatted
+```
+\end{minipage}%
+\begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_centros_formatted
+```
+\end{minipage}%
+\end{table}
+
+
+
+
+
+
+
+
+
+
+\begin{table}[!htb]
+\begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_tiros_puerta
+```
+\end{minipage}%
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_amarillas
+```
+\end{minipage}%
+  \begin{minipage}{.33\linewidth}
+    \centering
+```{r}
+top_rojas
+```
+\end{minipage}%
+\end{table}
+
+
+\begin{table}[!htb]
+\begin{minipage}{.50\linewidth}
+    \centering
+```{r}
+top_5_totalpf
+```
+\end{minipage}%
+  \begin{minipage}{.50\linewidth}
+    \centering
+```{r}
+top_5_mediapf
+```
+\end{minipage}%
+
+\end{table}
+
