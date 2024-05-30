@@ -36,26 +36,31 @@ ui = fluidPage(theme = shinytheme("cerulean"),
 server <- function(input, output) {
   output$report <- downloadHandler(
     filename = function() {
-      paste0(input$Jugador, "-Jornada", input$jorn, ".pdf")
+      if (input$tipoInforme == "Jornada") {
+        paste0(input$Jugador, "-Jornada", input$jorn, ".pdf")
+      } else {
+        paste0(input$Jugador, "-Temporada.pdf")
+      }
     },
     content = function(file) {
-      if (input$tipoInforme == "Jornada"){
-      params <- list(Jornada = input$jorn, jugador = input$Jugador)
-      out <-rmarkdown::render(
-        "Estadisticas.Rmd",
-        params = params,
-        output_file = file,
-        envir = new.env(parent = globalenv())
-      )
+      if (input$tipoInforme == "Jornada") {
+        params <- list(Jornada = input$jorn, jugador = input$Jugador)
+        out <- rmarkdown::render(
+          "Estadisticas.Rmd",
+          params = params,
+          output_file = paste0(input$Jugador, "-Jornada", input$jorn, ".pdf"),
+          envir = new.env(parent = globalenv())
+        )
       } else {
         params <- list(jugador = input$Jugador)
         out <- rmarkdown::render(
-        "EstadisticasMedias.Rmd",
-        params = params,
-        output_file = paste0(input$Jugador,"-Temporada.pdf"),
-        envir = new.env(parent = globalenv())
-  )}
-      file.rename(out,file)
+          "EstadisticasMedias.Rmd",
+          params = params,
+          output_file = paste0(input$Jugador, "-Temporada.pdf"),
+          envir = new.env(parent = globalenv())
+        )
+      }
+      file.rename(out, file)
     }
   )
 }
