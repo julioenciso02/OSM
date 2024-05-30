@@ -180,7 +180,7 @@ top_perdidas <- BDF %>%
 
 ```
 
-# Líderes de estadísticas - OSM
+# Líderes de estadísticas generales - OSM
 
 ```{r, results='asis'}
 top_amarillas <- BDF %>%

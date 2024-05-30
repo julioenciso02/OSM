@@ -19,14 +19,16 @@ ui = fluidPage(theme = shinytheme("cerulean"),
                div(style = "position: absolute; top: 35px; left: 10;", 
                    tags$img(src = "https://golab.es/wp-content/uploads/2021/07/cropped-Logo-web-Golab-1.png", width = 100, height = 100)
                ),
-               radioButtons("tipoInforme", "Selecciona el tipo de informe", choices = list("Jornada" = "Jornada", "Temporada" = "Temporada")),
+               radioButtons("tipoInforme", "Selecciona el tipo de informe", choices = list("Jornada" = "Jornada", "Temporada" = "Temporada","Estadísticas Generales" = "Lideres")),
                
                conditionalPanel(
                  condition = "input.tipoInforme == 'Jornada'",
                  numericInput("jorn", "Jornada", "", min = 1, max = 38)
                ),
-               
-               selectInput("Jugador", "Elige el jugador", c(Elige = '', jugadores), selectize = TRUE),
+               conditionalPanel(
+                 condition = "input.tipoInforme != 'Lideres'",
+                 selectInput("Jugador", "Elige el jugador", choices = c('Elige' = '', jugadores), selectize = TRUE)
+               ),
                downloadButton("report", "Generar informe"),
                add_busy_spinner(spin = "fading-circle")
                
@@ -38,7 +40,10 @@ server <- function(input, output) {
     filename = function() {
       if (input$tipoInforme == "Jornada") {
         paste0(input$Jugador, "-Jornada", input$jorn, ".pdf")
-      } else {
+      } else if(input$tipoInforme == "Lideres"){
+        paste0("LideresEstadisticasOSM",".pdf")
+      }
+      else {
         paste0(input$Jugador, "-Temporada.pdf")
       }
     },
@@ -51,7 +56,12 @@ server <- function(input, output) {
           output_file = paste0(input$Jugador, "-Jornada", input$jorn, ".pdf"),
           envir = new.env(parent = globalenv())
         )
-      } else {
+      } else if (input$tipoInforme == "Lideres"){
+        out <- rmarkdown::render("Lideres.Rmd",output_file = "LideresEstadisticasOSM.pdf",
+        envir = new.env(parent = globalenv())
+        )
+      }
+      else {
         params <- list(jugador = input$Jugador)
         out <- rmarkdown::render(
           "EstadisticasMedias.Rmd",
